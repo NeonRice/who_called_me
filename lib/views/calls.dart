@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import '../components/call_list.dart';
 import '../models/folded_call_log.dart';
 
-
 Future<List<FoldedCallLogEntry>> getFoldedCallLogs(
     {List<CallType>? filteredCallType}) async {
   var calls = await CallLog.get();
@@ -71,7 +70,12 @@ class _CallsState extends State<Calls> {
         }
 
         if (entries.hasData) {
-          child = CallList(calls: entries.data?.toList() ?? []);
+          child = CallList(
+            calls: entries.data?.toList() ?? [],
+            onPressed: (String call) {
+              Navigator.pushNamed(context, "/comments", arguments: call);
+            },
+          );
         } else {
           // Loading
           child = Column(

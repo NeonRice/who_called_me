@@ -5,7 +5,8 @@ import 'package:flutter_libphonenumber/flutter_libphonenumber.dart';
 import '../models/folded_call_log.dart';
 
 class CallList extends StatelessWidget {
-  const CallList({Key? key, required this.calls}) : super(key: key);
+  const CallList({Key? key, required this.calls, this.onPressed})
+      : super(key: key);
 
   final List<FoldedCallLogEntry> calls;
   final Map<CallType, Icon> callTypeIcons = const {
@@ -13,6 +14,7 @@ class CallList extends StatelessWidget {
     CallType.incoming: Icon(Icons.call_received),
     CallType.rejected: Icon(Icons.call_end),
   };
+  final void Function(String call)? onPressed;
 
   ListTile _buildRow(FoldedCallLogEntry call) {
     var maskedNumber = call.number;
@@ -31,15 +33,17 @@ class CallList extends StatelessWidget {
     }
 
     return ListTile(
-        title: Text(
-          (maskedNumber ?? "Unknown") + " $callCountLabel",
-        ),
-        subtitle: Row(
-          children: [
-            callTypeIcons[call.callType] ?? const Icon(Icons.call),
-            Text(guessedCountry?.countryName ?? ""),
-          ],
-        ));
+      title: Text(
+        (maskedNumber ?? "Unknown") + " $callCountLabel",
+      ),
+      subtitle: Row(
+        children: [
+          callTypeIcons[call.callType] ?? const Icon(Icons.call),
+          Text(guessedCountry?.countryName ?? ""),
+        ],
+      ),
+      onTap: () => onPressed!(maskedNumber ?? ""),
+    );
   }
 
   @override
@@ -63,4 +67,3 @@ class CallList extends StatelessWidget {
     );
   }
 }
-

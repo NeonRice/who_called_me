@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_libphonenumber/flutter_libphonenumber.dart';
+import 'routes.dart';
 import 'views/calls.dart';
 
 class App extends StatefulWidget {
@@ -23,6 +24,7 @@ class _AppState extends State<App> {
         theme: ThemeData(
           primarySwatch: Colors.blue,
         ),
+        onGenerateRoute: generateRoute,
         home: Scaffold(
           appBar: AppBar(
             title: const Text("Who Called Me?"),
