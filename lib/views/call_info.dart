@@ -1,4 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_libphonenumber/flutter_libphonenumber.dart';
+import 'package:intl/intl.dart';
+
+import '../models/number_comment.dart';
+import '../providers/database.dart';
+import '../providers/scraper.dart';
 
 class CallInfo extends StatefulWidget {
   final String number;
@@ -9,8 +15,28 @@ class CallInfo extends StatefulWidget {
   _CallInfoState createState() => _CallInfoState();
 }
 
-class _TextInput extends StatelessWidget {
-  const _TextInput({Key? key}) : super(key: key);
+class _CommentTextInput extends StatefulWidget {
+  const _CommentTextInput({Key? key, this.onSend}) : super(key: key);
+
+  final void Function(String)? onSend;
+
+  @override
+  State<_CommentTextInput> createState() => _CommentTextInputState();
+}
+
+class _CommentTextInputState extends State<_CommentTextInput> {
+  final TextEditingController _controller = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -24,11 +50,17 @@ class _TextInput extends StatelessWidget {
                   labelText: 'Input your comment',
                   border: OutlineInputBorder(),
                 ),
+                controller: _controller,
               ),
             ),
             IconButton(
-              onPressed: () {},
-              icon: Icon(Icons.send),
+              onPressed: () {
+                if (widget.onSend != null) {
+                  widget.onSend!(_controller.value.text);
+                  _controller.text = "";
+                }
+              },
+              icon: const Icon(Icons.send),
               iconSize: 40.0,
             ),
           ],
@@ -51,24 +83,22 @@ class _SingleComment extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      leading: const Icon(
-        Icons.account_circle_outlined,
-        size: 35,
-      ),
-      title: Text(username),
-      subtitle: Text(comment,
-          style: const TextStyle(fontSize: 16, fontStyle: FontStyle.italic)),
-      trailing: Text(
-          dateTime.toString(),
-          style: const TextStyle(fontSize: 11, fontStyle: FontStyle.italic))
-    );
+        leading: const Icon(
+          Icons.account_circle_outlined,
+          size: 35,
+        ),
+        title: Text(username),
+        subtitle: Text(comment,
+            style: const TextStyle(fontSize: 16, fontStyle: FontStyle.italic)),
+        trailing: Text(dateTime.toString(),
+            style: const TextStyle(fontSize: 11, fontStyle: FontStyle.italic)));
   }
 }
 
 class _CommentBox extends StatelessWidget {
-  final int commentNum;
+  final List<NumberCommentEntity> comments;
 
-  const _CommentBox({Key? key, required this.commentNum}) : super(key: key);
+  const _CommentBox({Key? key, required this.comments}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -78,10 +108,12 @@ class _CommentBox extends StatelessWidget {
         shrinkWrap: true,
         separatorBuilder: (_, __) => const Divider(),
         itemBuilder: (_, index) => _SingleComment(
-            username: "Jolkandra",
-            comment: "Skambineja Petras pastoviai",
-            dateTime: DateTime.now()),
-        itemCount: commentNum,
+          username: comments[index].name,
+          comment: comments[index].comment,
+          dateTime: DateTime.fromMillisecondsSinceEpoch(
+              comments[index].timestamp * 1000),
+        ),
+        itemCount: comments.length,
       ),
     );
   }
@@ -89,25 +121,31 @@ class _CommentBox extends StatelessWidget {
 
 // Phone number card class
 class PhoneCard extends StatelessWidget {
-  const PhoneCard({Key? key, required this.number}) : super(key: key);
+  PhoneCard({Key? key, required this.number, this.onPressed, this.lastUpdate})
+      : super(key: key);
 
   final String number;
+  final void Function(String)? onPressed;
+  final DateTime? lastUpdate;
+  final DateFormat format = DateFormat('yyyy-MM-dd');
 
   @override
   Widget build(BuildContext context) {
     return Card(
       child: Column(
         children: <Widget>[
-          const ListTile(
-            leading: Icon(
+          ListTile(
+            leading: const Icon(
               Icons.phone,
               size: 40,
             ), //Icon goes here
             title: Text(
-              "+37065538698",
-              style: TextStyle(fontSize: 25, height: 2),
+              number,
+              style: const TextStyle(fontSize: 25, height: 2),
             ),
-            subtitle: Text("Lithuania"),
+            subtitle: Text(CountryWithPhoneCode.getCountryDataByPhone(number)
+                    ?.countryName ??
+                "Unknown country"),
           ),
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
@@ -116,10 +154,14 @@ class PhoneCard extends StatelessWidget {
                 'Last updated at: ',
                 style: TextStyle(fontStyle: FontStyle.italic),
               ),
-              const Text('2021-05-15 14:56',
-                  style: TextStyle(fontStyle: FontStyle.italic)),
+              Text(lastUpdate == null ? "-" : format.format(lastUpdate!),
+                  style: const TextStyle(fontStyle: FontStyle.italic)),
               TextButton.icon(
-                  onPressed: () {},
+                  onPressed: () {
+                    if (onPressed != null) {
+                      onPressed!(number);
+                    }
+                  },
                   icon: const Icon(
                     Icons.refresh_outlined,
                     size: 24,
@@ -134,6 +176,39 @@ class PhoneCard extends StatelessWidget {
 }
 
 class _CallInfoState extends State<CallInfo> {
+  late Future<List<NumberCommentEntity>> comments;
+
+  @override
+  void initState() {
+    super.initState();
+    comments = getNumberComments(widget.number);
+  }
+
+  Future<List<NumberCommentEntity>> getNumberComments(String number) async {
+    number = cleanupNumber(number);
+    var numberComments = await NumberDatabase().comments(number: number);
+    if (numberComments.isEmpty) {
+      var numberInfo = await getPhoneNumberInfo(number);
+      for (final comment in numberInfo.comments) {
+        // Who cares about non existing comments..
+        if (comment.comment == null) {
+          continue;
+        }
+        var commentEntity = NumberCommentEntity(
+            name: comment.username ?? "Anonymous",
+            comment: comment.comment!,
+            timestamp: (comment.dateTime?.toLocal().millisecondsSinceEpoch ??
+                    DateTime.now().millisecondsSinceEpoch) ~/
+                Duration.millisecondsPerSecond,
+            number: number);
+        numberComments.add(commentEntity);
+        await NumberDatabase().insertComment(commentEntity);
+      }
+    }
+
+    return numberComments;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -141,10 +216,61 @@ class _CallInfoState extends State<CallInfo> {
         title: const Text("Who Called Me?"),
       ),
       body: Column(
-        children: const <Widget>[
-          PhoneCard(number: "+37065538698"),
-          _CommentBox(commentNum: 40),
-          _TextInput(),
+        children: <Widget>[
+          PhoneCard(
+            number: widget.number,
+            lastUpdate: DateTime.now(),
+            onPressed: (_) {
+              NumberDatabase().deleteNumber(widget.number);
+              var comments = getNumberComments(widget.number);
+              setState(() {
+                this.comments = comments;
+              });
+            },
+          ),
+          FutureBuilder(
+            builder: ((context, snapshot) {
+              if (snapshot.hasData) {
+                List<NumberCommentEntity> comments =
+                    snapshot.data as List<NumberCommentEntity>;
+
+                return _CommentBox(comments: comments);
+              } else if (snapshot.hasError) {
+                return const Text("Error occured!");
+              } else {
+                return Column(children: const [
+                  SizedBox(
+                    width: 60,
+                    height: 60,
+                    child: CircularProgressIndicator(),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.only(top: 16),
+                    child: Text('Awaiting result...'),
+                  )
+                ]);
+              }
+            }),
+            future: comments,
+          ),
+          _CommentTextInput(
+            onSend: (text) {
+              var comment = NumberCommentEntity(
+                  name: "Me",
+                  comment: text,
+                  timestamp: DateTime.now().millisecondsSinceEpoch ~/
+                      Duration.millisecondsPerSecond,
+                  number: cleanupNumber(widget.number),
+                  isLocal: 1);
+              if (text.isEmpty) {
+                return;
+              }
+              NumberDatabase().insertComment(comment);
+              setState(() {
+                comments = getNumberComments(widget.number);
+              });
+            },
+          ),
         ],
       ),
     );

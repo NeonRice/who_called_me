@@ -40,6 +40,7 @@ dependencies:
   flutter_libphonenumber: ^1.2.4
   path: ^1.8.1
   sqflite: ^2.0.2+1
+  intl: ^0.17.0
 
 dev_dependencies:
   flutter_test:
