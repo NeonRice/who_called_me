@@ -11,7 +11,7 @@ String cleanupNumber(String number) {
   return number.replaceAll(" ", "").replaceAll("+", "");
 }
 
-Future getPhoneNumberInfo(String number) async {
+Future<NumberInfo> getPhoneNumberInfo(String number) async {
   number = cleanupNumber(number);
   final website =
       Uri(scheme: "https", host: "telnumeriai.lt", path: "$number/");
@@ -23,7 +23,8 @@ Future getPhoneNumberInfo(String number) async {
   final searchedCnt = document
       .querySelector(
           "body > div.container > div.row > div.col-md-8 > table > tbody > tr:nth-child(1) > td")
-      ?.text;
+      ?.text
+      .replaceAll(RegExp(r'[^0-9]'), '');
   List<Element> comments = document.querySelectorAll(".listing > .card");
 
   var numberComments = comments.map((comment) {

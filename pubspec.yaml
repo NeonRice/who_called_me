@@ -38,6 +38,8 @@ dependencies:
   http: ^0.13.4
   html: ^0.15.0
   flutter_libphonenumber: ^1.2.4
+  path: ^1.8.1
+  sqflite: ^2.0.2+1
 
 dev_dependencies:
   flutter_test:
