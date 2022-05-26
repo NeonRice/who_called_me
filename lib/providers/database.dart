@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:who_called_me/models/number_comment.dart';
+import 'package:who_called_me/providers/scraper.dart';
 
 class NumberDatabase {
   static const String _dbFile = "who_called_me.db";
@@ -36,12 +37,20 @@ class NumberDatabase {
   Future<void> insertComments(List<NumberCommentEntity> comments) async {
     for (final comment in comments) {
       await insertComment(comment);
-    } 
+    }
   }
 
-  Future<List<NumberCommentEntity>> comments() async {
+  Future<List<NumberCommentEntity>> comments({String? number}) async {
     await open();
-    final List<Map<String, dynamic>> maps = await _db!.query('comments');
+    List<Map<String, dynamic>> maps;
+
+    if (number != null) {
+      number = cleanupNumber(number);
+      maps = await _db!
+          .query('comments', where: 'number = $number', orderBy: 'timestamp');
+    } else {
+      maps = await _db!.query('comments', orderBy: 'timestamp');
+    }
 
     return List.generate(maps.length, (i) {
       return NumberCommentEntity(
@@ -53,5 +62,12 @@ class NumberDatabase {
         isLocal: maps[i]['isLocal'],
       );
     });
+  }
+
+  Future<void> deleteNumber(String number) async {
+    await open();
+    number = cleanupNumber(number);
+    _db!.rawQuery(
+        'DELETE FROM comments WHERE number = $number AND isLocal != 1');
   }
 }

@@ -14,7 +14,7 @@ class NumberCommentEntity {
   final String comment;
   final int timestamp;
   final String number;
-  final bool isLocal;
+  final int isLocal;
 
   // Constructors
   NumberCommentEntity(
@@ -23,14 +23,14 @@ class NumberCommentEntity {
       required this.comment,
       required this.timestamp,
       required this.number,
-      required this.isLocal});
+      this.isLocal = 0});
 
   // Convert NumberComment to Map. This model is used in db
   Map<String, dynamic> toMap() {
     return {
       'name': name,
       'comment': comment,
-      'dateTime': timestamp,
+      'timestamp': timestamp,
       'number': number,
       'isLocal': isLocal
     };
