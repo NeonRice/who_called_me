@@ -39,9 +39,13 @@ class _TextInput extends StatelessWidget {
 class _SingleComment extends StatelessWidget {
   final String username;
   final String comment;
+  final DateTime dateTime;
 
   const _SingleComment(
-      {Key? key, required this.username, required this.comment})
+      {Key? key,
+      required this.username,
+      required this.comment,
+      required this.dateTime})
       : super(key: key);
 
   @override
@@ -51,11 +55,12 @@ class _SingleComment extends StatelessWidget {
         Icons.account_circle_outlined,
         size: 35,
       ),
-      title: Text(
-        username,
-      ),
+      title: Text(username),
       subtitle: Text(comment,
           style: const TextStyle(fontSize: 16, fontStyle: FontStyle.italic)),
+      trailing: Text(
+          dateTime.toString(),
+          style: const TextStyle(fontSize: 11, fontStyle: FontStyle.italic))
     );
   }
 }
@@ -72,8 +77,10 @@ class _CommentBox extends StatelessWidget {
         physics: const ClampingScrollPhysics(),
         shrinkWrap: true,
         separatorBuilder: (_, __) => const Divider(),
-        itemBuilder: (_, index) => const _SingleComment(
-            username: "Jolkandra", comment: "Skambineja Petras pastoviai"),
+        itemBuilder: (_, index) => _SingleComment(
+            username: "Jolkandra",
+            comment: "Skambineja Petras pastoviai",
+            dateTime: DateTime.now()),
         itemCount: commentNum,
       ),
     );
