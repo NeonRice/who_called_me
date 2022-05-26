@@ -64,7 +64,7 @@ class _CallsState extends State<Calls> {
                 color: Colors.red,
                 size: 60,
               ),
-              Text("Error occured")
+              Text("Error occurred")
             ],
           );
         }
@@ -79,6 +79,7 @@ class _CallsState extends State<Calls> {
         } else {
           // Loading
           child = Column(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: const [CircularProgressIndicator(), Text('Loading...')],
           );
         }
