@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_libphonenumber/flutter_libphonenumber.dart';
+import 'package:who_called_me/views/call_info.dart';
 import 'routes.dart';
 import 'views/calls.dart';
 
@@ -25,11 +26,7 @@ class _AppState extends State<App> {
           primarySwatch: Colors.blue,
         ),
         onGenerateRoute: generateRoute,
-        home: Scaffold(
-          appBar: AppBar(
-            title: const Text("Who Called Me?"),
-          ),
-          body: const Calls(),
-        ));
+        home: CallInfo(number: "+37065538698")
+    );
   }
 }

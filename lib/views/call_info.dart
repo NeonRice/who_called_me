@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_libphonenumber/flutter_libphonenumber.dart';
 import 'package:intl/intl.dart';
+import '../components/drawer.dart';
 
 import '../models/number_comment.dart';
 import '../providers/database.dart';
@@ -212,6 +213,7 @@ class _CallInfoState extends State<CallInfo> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      drawer: CustomDrawer(),
       appBar: AppBar(
         title: const Text("Who Called Me?"),
       ),
