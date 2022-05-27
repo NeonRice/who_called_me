@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_libphonenumber/flutter_libphonenumber.dart';
+import 'components/drawer.dart';
 import 'routes.dart';
 import 'views/calls.dart';
 
@@ -20,12 +21,14 @@ class _AppState extends State<App> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+        debugShowCheckedModeBanner: false,
         title: 'Who Called Me?',
         theme: ThemeData(
           primarySwatch: Colors.blue,
         ),
         onGenerateRoute: generateRoute,
         home: Scaffold(
+          drawer: const CustomDrawer(),
           appBar: AppBar(
             title: const Text("Who Called Me?"),
           ),

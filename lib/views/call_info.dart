@@ -229,7 +229,6 @@ class _CallInfoState extends State<CallInfo> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: const CustomDrawer(),
       appBar: AppBar(
         title: const Text("Who Called Me?"),
       ),
