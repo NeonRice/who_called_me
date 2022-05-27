@@ -1,16 +1,26 @@
+import 'package:call_log/call_log.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_libphonenumber/flutter_libphonenumber.dart';
 import 'package:intl/intl.dart';
-import '../components/drawer.dart';
 
+import '../components/drawer.dart';
 import '../models/number_comment.dart';
 import '../providers/database.dart';
 import '../providers/scraper.dart';
 
 class CallInfo extends StatefulWidget {
   final String number;
+  final CallType callType;
 
-  const CallInfo({Key? key, required this.number}) : super(key: key);
+  final Map<CallType, IconData> callTypeIcons = const {
+    CallType.missed: Icons.call_missed,
+    CallType.incoming: Icons.call_received,
+    CallType.rejected: Icons.call_end,
+  };
+
+  const CallInfo(
+      {Key? key, required this.number, this.callType = CallType.unknown})
+      : super(key: key);
 
   @override
   _CallInfoState createState() => _CallInfoState();
@@ -122,12 +132,18 @@ class _CommentBox extends StatelessWidget {
 
 // Phone number card class
 class PhoneCard extends StatelessWidget {
-  PhoneCard({Key? key, required this.number, this.onPressed, this.lastUpdate})
+  PhoneCard(
+      {Key? key,
+      required this.number,
+      this.onPressed,
+      this.lastUpdate,
+      this.icon = Icons.call})
       : super(key: key);
 
   final String number;
   final void Function(String)? onPressed;
   final DateTime? lastUpdate;
+  final IconData icon;
   final DateFormat format = DateFormat('yyyy-MM-dd');
 
   @override
@@ -136,8 +152,8 @@ class PhoneCard extends StatelessWidget {
       child: Column(
         children: <Widget>[
           ListTile(
-            leading: const Icon(
-              Icons.phone,
+            leading: Icon(
+              icon,
               size: 40,
             ), //Icon goes here
             title: Text(
@@ -213,7 +229,7 @@ class _CallInfoState extends State<CallInfo> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: CustomDrawer(),
+      drawer: const CustomDrawer(),
       appBar: AppBar(
         title: const Text("Who Called Me?"),
       ),
@@ -222,6 +238,7 @@ class _CallInfoState extends State<CallInfo> {
           PhoneCard(
             number: widget.number,
             lastUpdate: DateTime.now(),
+            icon: widget.callTypeIcons[widget.callType] ?? Icons.call,
             onPressed: (_) {
               NumberDatabase().deleteNumber(widget.number);
               var comments = getNumberComments(widget.number);

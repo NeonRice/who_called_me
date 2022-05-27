@@ -14,7 +14,7 @@ class CallList extends StatelessWidget {
     CallType.incoming: Icon(Icons.call_received),
     CallType.rejected: Icon(Icons.call_end),
   };
-  final void Function(String call)? onPressed;
+  final void Function(FoldedCallLogEntry call)? onPressed;
 
   ListTile _buildRow(FoldedCallLogEntry call) {
     var maskedNumber = call.number;
@@ -42,7 +42,7 @@ class CallList extends StatelessWidget {
           Text(guessedCountry?.countryName ?? ""),
         ],
       ),
-      onTap: () => onPressed!(maskedNumber ?? ""),
+      onTap: () => onPressed!(call),
     );
   }
 

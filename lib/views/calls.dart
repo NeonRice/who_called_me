@@ -72,7 +72,7 @@ class _CallsState extends State<Calls> {
         if (entries.hasData) {
           child = CallList(
             calls: entries.data?.toList() ?? [],
-            onPressed: (String call) {
+            onPressed: (FoldedCallLogEntry call) {
               Navigator.pushNamed(context, "/comments", arguments: call);
             },
           );
