@@ -21,6 +21,7 @@ class _AppState extends State<App> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+        debugShowCheckedModeBanner: false,
         title: 'Who Called Me?',
         theme: ThemeData(
           primarySwatch: Colors.blue,
