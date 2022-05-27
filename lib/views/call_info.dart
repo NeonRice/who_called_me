@@ -1,9 +1,8 @@
 import 'package:call_log/call_log.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_libphonenumber/flutter_libphonenumber.dart';
-import 'package:intl/intl.dart';
 
-import '../components/drawer.dart';
+import '../components/phone_card.dart';
 import '../models/number_comment.dart';
 import '../providers/database.dart';
 import '../providers/scraper.dart';
@@ -130,68 +129,6 @@ class _CommentBox extends StatelessWidget {
   }
 }
 
-// Phone number card class
-class PhoneCard extends StatelessWidget {
-  PhoneCard(
-      {Key? key,
-      required this.number,
-      this.onPressed,
-      this.lastUpdate,
-      this.icon = Icons.call})
-      : super(key: key);
-
-  final String number;
-  final void Function(String)? onPressed;
-  final DateTime? lastUpdate;
-  final IconData icon;
-  final DateFormat format = DateFormat('yyyy-MM-dd');
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      child: Column(
-        children: <Widget>[
-          ListTile(
-            leading: Icon(
-              icon,
-              size: 40,
-            ), //Icon goes here
-            title: Text(
-              number,
-              style: const TextStyle(fontSize: 25, height: 2),
-            ),
-            subtitle: Text(CountryWithPhoneCode.getCountryDataByPhone(number)
-                    ?.countryName ??
-                "Unknown country"),
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: <Widget>[
-              const Text(
-                'Last updated at: ',
-                style: TextStyle(fontStyle: FontStyle.italic),
-              ),
-              Text(lastUpdate == null ? "-" : format.format(lastUpdate!),
-                  style: const TextStyle(fontStyle: FontStyle.italic)),
-              TextButton.icon(
-                  onPressed: () {
-                    if (onPressed != null) {
-                      onPressed!(number);
-                    }
-                  },
-                  icon: const Icon(
-                    Icons.refresh_outlined,
-                    size: 24,
-                  ),
-                  label: const Text("Refresh")),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class _CallInfoState extends State<CallInfo> {
   late Future<List<NumberCommentEntity>> comments;
 
@@ -252,21 +189,39 @@ class _CallInfoState extends State<CallInfo> {
                 List<NumberCommentEntity> comments =
                     snapshot.data as List<NumberCommentEntity>;
 
+                if (comments.isEmpty) {
+                  return const Expanded(
+                    child: Align(
+                      alignment: Alignment.center,
+                      child: Text("Nothing found!"),
+                    ),
+                  );
+                }
+
                 return _CommentBox(comments: comments);
               } else if (snapshot.hasError) {
-                return const Text("Error occured!");
-              } else {
-                return Column(children: const [
-                  SizedBox(
-                    width: 60,
-                    height: 60,
-                    child: CircularProgressIndicator(),
+                return const Expanded(
+                  child: Align(
+                    alignment: Alignment.center,
+                    child: Text("Error occured!"),
                   ),
-                  Padding(
-                    padding: EdgeInsets.only(top: 16),
-                    child: Text('Awaiting result...'),
-                  )
-                ]);
+                );
+              } else {
+                return Expanded(
+                  child: Align(
+                      alignment: Alignment.center,
+                      child: Column(children: const [
+                        SizedBox(
+                          width: 60,
+                          height: 60,
+                          child: CircularProgressIndicator(),
+                        ),
+                        Padding(
+                          padding: EdgeInsets.only(top: 16),
+                          child: Text('Awaiting result...'),
+                        )
+                      ])),
+                );
               }
             }),
             future: comments,
