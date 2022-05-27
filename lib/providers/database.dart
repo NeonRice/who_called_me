@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
+import 'package:who_called_me/models/folded_call_log.dart';
 import 'package:who_called_me/models/number_comment.dart';
 import 'package:who_called_me/providers/scraper.dart';
 
@@ -69,5 +70,19 @@ class NumberDatabase {
     number = cleanupNumber(number);
     _db!.rawQuery(
         'DELETE FROM comments WHERE number = $number AND isLocal != 1');
+  }
+
+  Future<List<FoldedCallLogEntry>> distinctNumbers() async {
+    await open();
+    var maps =
+        await _db!.rawQuery('SELECT DISTINCT number FROM comments');
+
+    return List.generate(maps.length, (i) {
+      return FoldedCallLogEntry(
+          name: maps[i]['name'],
+          timestamp: maps[i]['timestamp'],
+          number: maps[i]['number'],
+          callCount: 0);
+    });
   }
 }

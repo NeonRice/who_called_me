@@ -21,18 +21,12 @@ class _AppState extends State<App> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-        debugShowCheckedModeBanner: false,
-        title: 'Who Called Me?',
-        theme: ThemeData(
-          primarySwatch: Colors.blue,
-        ),
-        onGenerateRoute: generateRoute,
-        home: Scaffold(
-          drawer: const CustomDrawer(),
-          appBar: AppBar(
-            title: const Text("Who Called Me?"),
-          ),
-          body: const Calls(),
-        ));
+      debugShowCheckedModeBanner: false,
+      title: 'Who Called Me?',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+      ),
+      onGenerateRoute: generateRoute,
+    );
   }
 }

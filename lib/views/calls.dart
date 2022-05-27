@@ -2,6 +2,7 @@ import 'package:call_log/call_log.dart';
 import 'package:flutter/material.dart';
 
 import '../components/call_list.dart';
+import '../components/drawer.dart';
 import '../models/folded_call_log.dart';
 
 Future<List<FoldedCallLogEntry>> getFoldedCallLogs(
@@ -50,52 +51,60 @@ class _CallsState extends State<Calls> {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder(
-      future: getFoldedCallLogs(filteredCallType: filteredTypes),
-      builder: (BuildContext context,
-          AsyncSnapshot<List<FoldedCallLogEntry>> entries) {
-        Widget child;
+    return Scaffold(
+        appBar: AppBar(
+          title: const Text("Who Called Me?"),
+        ),
+        drawer: const CustomDrawer(),
+        body: FutureBuilder(
+          future: getFoldedCallLogs(filteredCallType: filteredTypes),
+          builder: (BuildContext context,
+              AsyncSnapshot<List<FoldedCallLogEntry>> entries) {
+            Widget child;
 
-        if (entries.hasError) {
-          child = Column(
-            children: const [
-              Icon(
-                Icons.error,
-                color: Colors.red,
-                size: 60,
-              ),
-              Text("Error occurred")
-            ],
-          );
-        }
+            if (entries.hasError) {
+              child = Column(
+                children: const [
+                  Icon(
+                    Icons.error,
+                    color: Colors.red,
+                    size: 60,
+                  ),
+                  Text("Error occurred")
+                ],
+              );
+            }
 
-        if (entries.hasData) {
-          child = CallList(
-            calls: entries.data?.toList() ?? [],
-            onPressed: (FoldedCallLogEntry call) {
-              Navigator.pushNamed(context, "/comments", arguments: call);
-            },
-          );
-        } else {
-          // Loading
-          child = Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: const [CircularProgressIndicator(), Text('Loading...')],
-          );
-        }
+            if (entries.hasData) {
+              child = CallList(
+                calls: entries.data?.toList() ?? [],
+                onPressed: (FoldedCallLogEntry call) {
+                  Navigator.pushNamed(context, "/comments", arguments: call);
+                },
+              );
+            } else {
+              // Loading
+              child = Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: const [
+                  CircularProgressIndicator(),
+                  Text('Loading...')
+                ],
+              );
+            }
 
-        return Center(
-          child: RefreshIndicator(
-              child: child,
-              onRefresh: () async {
-                var retrievedCalls =
-                    await getFoldedCallLogs(filteredCallType: filteredTypes);
-                setState(() {
-                  calls = retrievedCalls;
-                });
-              }),
-        );
-      },
-    );
+            return Center(
+              child: RefreshIndicator(
+                  child: child,
+                  onRefresh: () async {
+                    var retrievedCalls = await getFoldedCallLogs(
+                        filteredCallType: filteredTypes);
+                    setState(() {
+                      calls = retrievedCalls;
+                    });
+                  }),
+            );
+          },
+        ));
   }
 }

@@ -235,7 +235,7 @@ class _CallInfoState extends State<CallInfo> {
       body: Column(
         children: <Widget>[
           PhoneCard(
-            number: widget.number,
+            number: FlutterLibphonenumber().formatNumberSync(widget.number),
             lastUpdate: DateTime.now(),
             icon: widget.callTypeIcons[widget.callType] ?? Icons.call,
             onPressed: (_) {
